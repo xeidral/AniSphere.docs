@@ -1,0 +1,16 @@
+{
+  "name": "anisphere-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The AniSphere documentation site",
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "mermaid": "^11.17.2",
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-mermaid": "^2.0.17"
+  }
+}

@@ -1,0 +1,6 @@
+node_modules/
+# Only the stray one beside package.json. The site's own config and theme live
+# under docs/.vitepress and belong in the repository.
+/.vitepress/
+docs/.vitepress/dist/
+docs/.vitepress/cache/

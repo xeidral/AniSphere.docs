@@ -1,0 +1,58 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Hidden: only ever runs as part of the compound below.
+      // The name shows up in the CALL STACK view during a session.
+      "name": "Rust backend",
+      "presentation": { "hidden": true },
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/src-tauri/target/debug/anisphere.exe",
+      "cwd": "${workspaceFolder}/src-tauri",
+      "console": "integratedTerminal",
+      "environment": [
+        { "name": "RUST_LOG", "value": "info,anisphere_lib=debug" },
+        {
+          // Opens the WebView2 CDP port so "WebView frontend" can attach.
+          "name": "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+          "value": "--remote-debugging-port=9222"
+        }
+      ]
+    },
+    {
+      // Hidden: only ever runs as part of the compound below.
+      "name": "WebView frontend",
+      "presentation": { "hidden": true },
+      "type": "msedge",
+      "request": "attach",
+      "port": 9222,
+      "webRoot": "${workspaceFolder}",
+      // Generous, so a cold cargo build never times the attach out.
+      "timeout": 120000
+    },
+    {
+      "name": "Vitest: current file",
+      "presentation": { "order": 2 },
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": ["run", "${relativeFile}"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "autoAttachChildProcesses": true,
+      "smartStep": true,
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ],
+  "compounds": [
+    {
+      // F5: builds, launches the app, attaches both debuggers.
+      "name": "Debug AniSphere (Rust + UI)",
+      "presentation": { "order": 1 },
+      "preLaunchTask": "tauri:debug:prep",
+      "configurations": ["Rust backend", "WebView frontend"],
+      "stopAll": true
+    }
+  ]
+}

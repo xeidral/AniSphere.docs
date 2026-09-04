@@ -1,0 +1,69 @@
+name: Site
+
+# Publishes the documentation to the root of the Pages branch.
+#
+# The coverage reports live in the same branch, under reports/, and are written
+# by a workflow in the application repository. This one replaces everything else
+# and leaves that directory exactly where it found it.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: site
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      # gh-pages carries a build output, and its history is the history of the
+      # sources it was built from. The branch is replaced by one commit each
+      # time rather than grown, so nothing accumulates there.
+      - name: Publish, keeping the coverage reports
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+          # The reports under reports/ are written by the application
+          # repository's workflow, so they are carried across, not replaced.
+          mkdir -p carried
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git fetch origin gh-pages --depth 1
+            git worktree add --detach published origin/gh-pages
+            if [ -d published/reports ]; then cp -r published/reports carried/; fi
+            git worktree remove --force published
+          fi
+
+          git worktree add --detach published
+          cd published
+          git checkout --orphan gh-pages
+          git rm -rf . >/dev/null 2>&1 || true
+          cd ..
+
+          cp -r docs/.vitepress/dist/. published/
+          if [ -d carried/reports ]; then cp -r carried/reports published/; fi
+          # Jekyll would drop the underscore-prefixed files the build emits.
+          touch published/.nojekyll
+
+          cd published
+          git add -A
+          git commit -q -m 'AniSphere 2.0'
+          git push --force origin HEAD:gh-pages
