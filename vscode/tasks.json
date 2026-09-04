@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      // Vite dev server on :1420, the devUrl from tauri.conf.json.
+      "label": "ui:dev",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "dev"],
+      "isBackground": true,
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "group": "tauri", "panel": "dedicated", "reveal": "always" },
+      "problemMatcher": {
+        "base": "$tsc-watch",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": { "regexp": "(.*)" },
+          "endsPattern": { "regexp": "ready in|Local:" }
+        }
+      }
+    },
+    {
+      "label": "rust:build:debug",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build", "--manifest-path", "src-tauri/Cargo.toml"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "group": "tauri", "panel": "dedicated" },
+      "problemMatcher": ["$rustc"],
+      "group": "build"
+    },
+    {
+      // Bring Vite up first, then build the Rust binary.
+      "label": "tauri:debug:prep",
+      "dependsOn": ["ui:dev", "rust:build:debug"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    }
+  ]
+}
